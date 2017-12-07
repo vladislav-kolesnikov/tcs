@@ -1,0 +1,13 @@
+{
+    {{#repeat 12}}
+        "{{@index}}": [
+            {{#repeat 4 14}}
+                {
+                "currency": {{float 1 2 round=0.11}},
+                "dayIdx": {{int 1 28}},
+                "growIndex": null
+                }
+            {{/repeat}}
+        ]
+    {{/repeat}}
+}

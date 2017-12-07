@@ -1,0 +1,40 @@
+$pointFillColor: #8eb4d0;
+$pointRadius: 4;
+$pointBorderColor: white;
+
+.Chart {
+  padding: 1rem;
+}
+
+.container {
+  display: inline-block;
+  position: relative;
+}
+.canvas {
+  cursor: pointer;
+}
+
+.x-legend {
+  font-size: 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.chart-line {
+  stroke-dasharray: 4 4;
+  stroke: #909090;
+}
+
+.axis-line {
+  stroke: #909090;
+}
+
+.rates-point {
+  r: $pointRadius;
+  fill: $pointFillColor;
+  stroke: $pointBorderColor;
+  stroke-width: 2;
+  will-change: r;
+  transition: 150ms r ease;
+}

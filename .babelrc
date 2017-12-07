@@ -1,0 +1,43 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "debug": true,
+        "modules": false,
+        "loose": true,
+        "spec": true,
+        "useBuiltIns": "entry",
+        "targets": {
+          "uglify": false,
+          "browsers": [
+            "chrome >= 50",
+            "ff >= 40",
+            "ios >= 9",
+            "android >= 4"
+          ]
+        }
+      }
+    ],
+    "react"
+  ],
+  "plugins": [
+    [
+      "transform-runtime",
+      {
+        "helpers": false,
+        "polyfill": false,
+        "regenerator": false
+      }
+    ],
+    "transform-class-properties",
+    "transform-decorators-legacy",
+    "syntax-dynamic-import",
+    [
+      "transform-object-rest-spread",
+      {
+        "useBuiltIns": true
+      }
+    ]
+  ]
+}
