@@ -60,10 +60,6 @@ class Chart extends Component {
 		this.pt = this.svgNode.createSVGPoint();
 	}
 	
-	componentWillReceiveProps(nextProps) {
-		console.log(nextProps.pointsDict)
-	}
-	
 	drawXAxis() {
 		const { width, offset, height, xLegendData } = this.props;
 		return (

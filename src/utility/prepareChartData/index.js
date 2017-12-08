@@ -37,7 +37,7 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 		 * @type {number}
 		 */
 		const x = Math.floor(j * X_MONTH_PART_WIDTH + X_OFFSET);
-		const y = canvasHeight - (currency * canvasHeight / maxValue);
+		const y = canvasHeight - (currency * canvasHeight * .8 / maxValue) - canvasHeight * .1;
 		
 		pointsDict[x] = {
 			currency,
