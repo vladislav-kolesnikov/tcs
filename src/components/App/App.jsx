@@ -41,7 +41,8 @@ class App extends PureComponent {
 	
 	fetchChartData = () => {
 		this.setState(_ => ({
-				...stateHelper.loading
+				...stateHelper.loading,
+			...App.initialState,
 			}),
 			() => fetch('/api/charts')
 				.then(res => res.json())

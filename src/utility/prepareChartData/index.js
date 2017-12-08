@@ -29,14 +29,14 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 	let i = 0;
 	let j = 1;
 	
-	while (i < valuesCount) {
+	while (i < valuesCount) { // 180
 		const { currency, growIndex, timestamp } = flatStatsData[i];
 		
 		/**
 		 *
 		 * @type {number}
 		 */
-		const x = Math.round(j * X_MONTH_PART_WIDTH + X_OFFSET);
+		const x = Math.floor(j * X_MONTH_PART_WIDTH + X_OFFSET);
 		const y = canvasHeight - (currency * canvasHeight / maxValue);
 		
 		pointsDict[x] = {
@@ -47,19 +47,9 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 			y
 		};
 		
-		
-		// TODO delete me
-		if (isNaN(x) || isNaN(y)) {
-			debugger
-		}
-		
-		if (typeof y === 'undefined') {
-			debugger;
-		}
-		
 		const coords = { x, y };
 		coordinates[i] = coords;
-		polyLinePoints[i] = coords;
+		polyLinePoints[i] = `${x} ${y}`;
 		
 		
 		if (j !== 1 && j % daysCount === 0 || j === 1 && daysCount === 1) {
@@ -74,12 +64,18 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 		i++;
 	}
 	
+	for (let k = 0; k < canvasWidth; k++) {
+		if (!pointsDict[k]) {
+			pointsDict[k] = pointsDict[k - 1];
+		}
+	}
+	
 	return {
 		coordinates,
 		pointsDict,
 		minValue,
 		maxValue,
 		xLegendData: monthCountList.map(getMonthName),
-		polyLinePoints: polyLinePoints.map(({x, y}) => `${x} ${y}`).join(', ')
+		polyLinePoints: polyLinePoints.join(', ')
 	}
 }

@@ -14,6 +14,9 @@ function formatDate(date) {
 	return new Intl.DateTimeFormat('ru').format(date)
 }
 
+const LEFT_DIR = 'left';
+const RIGHT_DIR = 'right';
+
 @CSSModules(styles, {
 	allowMultiple: true,
 	handleNotFoundStyleName: 'ignore'
@@ -44,15 +47,21 @@ class Chart extends Component {
 		this.state = {
 			statsPopupIsVisible: false,
 			currentPosition: {},
-			currentStats: {}
+			currentStats: {
+				growIndex: {}
+			}
 		};
 		
+		this.handleMouseLeave = this.handleMouseLeave.bind(this);
 		this.handleMouseMove = this.handleMouseMove.bind(this);
-		this.findPositionInRange = $memo(this.findPositionInRange);
 	}
 	
 	componentDidMount() {
 		this.pt = this.svgNode.createSVGPoint();
+	}
+	
+	componentWillReceiveProps(nextProps) {
+		console.log(nextProps.pointsDict)
 	}
 	
 	drawXAxis() {
@@ -72,35 +81,32 @@ class Chart extends Component {
 		)
 	}
 	
+	_prevX = null;
+	
 	handleMouseMove(e) {
 		e.persist();
 		
-		let cursorPoint = this.getCursorPoint(e);
+		const cursorCoordinates = this.getCursorPoint(e);
+		const currentX = cursorCoordinates.x;
+		const statsData = this.props.pointsDict[currentX];
+		const moveDirection = this._prevX > currentX ? LEFT_DIR : RIGHT_DIR;
+		
 		this.setState({
-			currentPosition: cursorPoint,
-			moveDirection: '',
+			currentPosition: cursorCoordinates,
+			moveDirection: moveDirection,
+			currentStats: statsData,
+			statsPopupIsVisible: !!statsData,
 		});
 		
-		// console.log(cursorPoint)
-		this._throttledMouseMove(cursorPoint, this.props.pointsDict);
+		this._prevStats = statsData;
+		this._prevX = currentX;
 	}
 	
-	_throttledMouseMove(currentCursorCoordinates, pointsDict) {
-		const x = currentCursorCoordinates.x;
-		const statsData = pointsDict[x];
-		
-		console.log(pointsDict)
-		
-		if (statsData) {
-			this.setState({
-				statsPopupIsVisible: true,
-				currentStats: statsData
-			});
-		}
-	}
-	
-	findPositionInRange() {
-		console.log(Object.values(this.state.pointsDict));
+	handleMouseLeave() {
+		this.setState(prevState => ({
+			currentStats: prevState.currentStats,
+			statsPopupIsVisible: false,
+		}));
 	}
 	
 	getCursorPoint(evt) {
@@ -111,7 +117,19 @@ class Chart extends Component {
 	}
 	
 	renderStatsPopup() {
-		let { x, y, timestamp, growIndex } = this.state.currentStats;
+		const currentStats = this.state.currentStats;
+		if (!Object.keys(currentStats)) {
+			return null;
+		}
+		
+		let {
+			x = 0,
+			y = 0,
+			timestamp,
+			growIndex,
+			currency
+		} = currentStats;
+		
 		const { width, height, offset, statsPopupSize } = this.props;
 		
 		const ratesPointNode = (
@@ -145,10 +163,11 @@ class Chart extends Component {
 					height={ statsPopupSize }
 					filter='url(#shadow)'
 				>
-					<text fill='black'>
-						<tspan>{ formatDate(timestamp) }</tspan>
-						<tspan>{ growIndex.coefficient }</tspan>
-					</text>
+					<text fill='black' style={{ color: 'black' }}>
+						{ currency }
+						{ formatDate(timestamp) }
+						{ growIndex.coefficient }
+						</text>
 				</rect>
 				{ ratesPointNode }
 			</g>
@@ -208,7 +227,6 @@ class Chart extends Component {
 			)
 		}
 		
-		
 		return (
 			<div styleName='Chart'>
 				<div styleName='container'>
@@ -220,6 +238,7 @@ class Chart extends Component {
 						height={ height }
 						style={ { backgroundColor: maskColor } }
 						onMouseMove={ chartLoaded ? this.handleMouseMove : $noop }
+						onMouseLeave={ chartLoaded ? this.handleMouseLeave : $noop }
 					>
 						<defs>
 							<filter id="shadow">
