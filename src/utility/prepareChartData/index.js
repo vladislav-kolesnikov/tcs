@@ -19,8 +19,10 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 	const coordinates = new Array(valuesCount);
 	const polyLinePoints = Array.from(coordinates);
 	
-	const maxValue = flatStatsData.reduce((acc, { currency }) => Math.max(acc, currency), 0);
-	const minValue = flatStatsData.reduce((acc, { currency }) => Math.min(acc, currency), maxValue);
+	let maxValue = flatStatsData.reduce((acc, { currency }) => Math.max(acc, currency), 0);
+	let minValue = flatStatsData.reduce((acc, { currency }) => Math.min(acc, currency), maxValue);
+	let deltaY = (maxValue - minValue);
+	
 	
 	let daysCount = daysInMonthsList.pop();
 	const X_SECTOR_WIDTH = canvasWidth / monthCountList.length;
@@ -37,7 +39,7 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 		 * @type {number}
 		 */
 		const x = Math.floor(j * X_MONTH_PART_WIDTH + X_OFFSET);
-		const y = canvasHeight - (currency * canvasHeight / maxValue);
+		const y = canvasHeight - ((currency - deltaY * 0.9) * canvasHeight / (maxValue - minValue));
 		
 		pointsDict[x] = {
 			currency,
@@ -46,9 +48,8 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 			x,
 			y
 		};
-		
-		const coords = { x, y };
-		coordinates[i] = coords;
+
+		coordinates[i] = { x, y };
 		polyLinePoints[i] = `${x} ${y}`;
 		
 		
