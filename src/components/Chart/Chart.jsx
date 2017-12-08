@@ -118,9 +118,6 @@ class Chart extends Component {
 	
 	renderStatsPopup() {
 		const currentStats = this.state.currentStats;
-		if (!Object.keys(currentStats)) {
-			return null;
-		}
 		
 		let {
 			x = 0,
