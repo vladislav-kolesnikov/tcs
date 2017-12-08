@@ -4,9 +4,10 @@ import PropTypes from 'prop-types';
 function MonthLegend(props, ctx) {
 	return (
 		<g>
-			{ props.stats.map((values, idx, arr) => {
+			{
+				props.legendData.map((text, idx, arr) => {
 					let offset = props.offset;
-					let xCoordinate = idx * Math.round((props.canvasWidth / arr.length)) + offset / 2;
+					let xCoordinate = idx * Math.round((props.canvasWidth / arr.length)) + offset;
 					let yCoordinate = props.canvasHeight - offset / 2;
 					
 					return (
@@ -16,21 +17,34 @@ function MonthLegend(props, ctx) {
 							y={ yCoordinate }
 							className={ props.className }
 						>
-							<tspan>{ props.formatter(values) }</tspan>
+							<tspan>{ text }</tspan>
 						</text>
-					)
-				}
-			) }
+					);
+				})
+			}
 		</g>
 	)
 }
 
 MonthLegend.propTypes = {
-	stats: PropTypes.array,
+	legendData: PropTypes.array,
 	canvasWidth: PropTypes.number,
 	canvasHeight: PropTypes.number,
 	offset: PropTypes.number,
-	formatter: PropTypes.func.isRequired
+	xLegendData: PropTypes.array
 };
 
 export default MonthLegend;
+
+/**
+ ,
+ <MonthLegend
+ key='x-legend'
+ data={  }
+ canvasWidth={ width }
+ canvasHeight={ height }
+ offset={ offset }
+ formatter={ formatMonth }
+ className={ styles['x-legend'] }
+ />
+ */

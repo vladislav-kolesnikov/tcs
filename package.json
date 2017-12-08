@@ -5,10 +5,9 @@
   "main": "webpack.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node generate-stats.js && npm run watch",
-    "watch": "webpack --watch",
-    "start:prod": "NODE_ENV=production webpack && npm run start:server",
-    "start:server": "node server"
+    "build": "webpack",
+    "start:prod": "NODE_ENV=production npm run build && npm run start:server",
+    "start:server": "PORT=3004 node server"
   },
   "author": "Vladislav Kolesnikov",
   "license": "ISC",

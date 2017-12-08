@@ -3,7 +3,6 @@ import CSSModules from 'react-css-modules';
 import PropTypes from 'prop-types';
 import styles from './Chart.scss';
 import MonthLegend from './blocks/MonthLegend';
-import getMonthName from 'utility/getMonthName';
 import $memo from 'lodash/memoize';
 import $noop from 'lodash/noop';
 
@@ -26,8 +25,17 @@ class Chart extends Component {
 	
 	static propTypes = {
 		color: PropTypes.string,
+		chartLoaded: PropTypes.bool,
 		chartFetching: PropTypes.bool,
-		chartLoaded: PropTypes.bool
+		width: PropTypes.number,
+		height: PropTypes.number,
+		offset: PropTypes.number,
+		statsPopupSize: PropTypes.number,
+		polyLinePoints: PropTypes.string,
+		pointsDict: PropTypes.object,
+		maxValue: PropTypes.number,
+		minValue: PropTypes.number,
+		xLegendData: PropTypes.array
 	};
 	
 	constructor(props, ctx) {
@@ -36,15 +44,11 @@ class Chart extends Component {
 		this.state = {
 			statsPopupIsVisible: false,
 			currentPosition: {},
+			currentStats: {}
 		};
 		
 		this.handleMouseMove = this.handleMouseMove.bind(this);
-		this.getCursorPoint = $memo(this.getCursorPoint);
 		this.findPositionInRange = $memo(this.findPositionInRange);
-	}
-	
-	static formatMonth(values) {
-		return getMonthName(new Date(values.timestamp).getMonth())
 	}
 	
 	componentDidMount() {
@@ -52,42 +56,40 @@ class Chart extends Component {
 	}
 	
 	drawXAxis() {
-		const { width, offset, height, data } = this.props;
-		return [
-			<line
-				key='x-axis'
-				styleName='axis-line'
-				x1={ offset }
-				x2={ width }
-				y1={ height - offset }
-				y2={ height - offset }
-			/>,
-			<MonthLegend
-				key='x-legend'
-				stats={ data }
-				canvasWidth={ width }
-				canvasHeight={ height }
-				offset={ offset }
-				formatter={ Chart.formatMonth }
-				className={ styles['x-legend'] }
-			/>
-		]
+		const { width, offset, height, xLegendData } = this.props;
+		return (
+			<React.fragment>
+				<line
+					key='x-axis'
+					styleName='axis-line'
+					x1={ offset }
+					x2={ width }
+					y1={ height - offset }
+					y2={ height - offset }
+				/>
+			
+			</React.fragment>
+		)
 	}
 	
 	handleMouseMove(e) {
 		e.persist();
 		
-		const currentCursorCoordinates = this.getCursorPoint(e);
+		let cursorPoint = this.getCursorPoint(e);
 		this.setState({
-			currentPosition: currentCursorCoordinates
+			currentPosition: cursorPoint,
+			moveDirection: '',
 		});
 		
-		this._throttledMouseMove(currentCursorCoordinates, this.props.pointsDict);
+		// console.log(cursorPoint)
+		this._throttledMouseMove(cursorPoint, this.props.pointsDict);
 	}
 	
 	_throttledMouseMove(currentCursorCoordinates, pointsDict) {
 		const x = currentCursorCoordinates.x;
 		const statsData = pointsDict[x];
+		
+		console.log(pointsDict)
 		
 		if (statsData) {
 			this.setState({
@@ -160,45 +162,50 @@ class Chart extends Component {
 			color,
 			chartLoaded,
 			chartFetching,
-			preparedCoordinates,
-			chartPoints,
+			coordinates,
+			polyLinePoints,
 			offset,
 			width,
 			height
 		} = this.props;
 		
-		let canvasContentNodes = [];
+		let canvasContentNodes;
 		if (chartLoaded) {
 			const { currentPosition, statsPopupIsVisible } = this.state;
 			const xCoord = currentPosition.x > offset ? currentPosition.x : offset;
-			const { y: firstY } = preparedCoordinates[0];
-			const { y: lastY } = preparedCoordinates[preparedCoordinates.length - 1];
+			const { y: firstY } = coordinates[0];
+			const { y: lastY } = coordinates[coordinates.length - 1];
 			
-			canvasContentNodes = [
-				<g key='chart-mask'>
-					<line
-						styleName='chart-line'
-						x1={ xCoord }
-						y1={ 0 }
-						x2={ xCoord }
-						y2={ height - offset }
+			canvasContentNodes = (
+				<React.Fragment>
+					<g key='chart-mask'>
+						<line
+							styleName='chart-line'
+							x1={ xCoord }
+							y1={ 0 }
+							x2={ xCoord }
+							y2={ height - offset }
+						/>
+						
+						<polygon
+							// transform="translate(20 20)"
+							fill={ maskColor }
+							points={ `${offset - 1} 0, ${offset - 1} ${firstY} ${polyLinePoints}, ${width + 1} ${lastY}, ${width + 1} 0` }
+						/>
+					</g>
+					
+					<polyline
+						// transform="translate(20 20)"
+						key='chart-data-line'
+						strokeWidth={ 2 }
+						fill='none'
+						stroke={ color }
+						points={ polyLinePoints }
 					/>
 					
-					<polygon
-						fill={ maskColor }
-						points={ `${offset - 1} 0, ${offset - 1} ${firstY} ${chartPoints}, ${width + 1} ${lastY}, ${width + 1} 0` }
-					/>
-				</g>,
-				
-				<polyline
-					key='chart-data-line'
-					strokeWidth={ 2 }
-					fill='none'
-					stroke={ color }
-					points={ chartPoints }
-				/>,
-				statsPopupIsVisible && this.renderStatsPopup()
-			];
+					{ statsPopupIsVisible && this.renderStatsPopup() }
+				</React.Fragment>
+			)
 		}
 		
 		

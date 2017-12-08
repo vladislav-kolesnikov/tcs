@@ -25,8 +25,11 @@ server.get(/.*/, restify.plugins.serveStatic({
 	default: 'index.html'
 }));
 
-server.listen(8080, function () {
+let HOSTNAME = '0.0.0.0';
+let PORT = process.env.PORT || 8080;
+
+server.listen(PORT, HOSTNAME, () => {
 	console.log('%s listening at %s', server.name, server.url);
-	opn('http://localhost:8080');
+	opn(`${server.url}`);
 });
 
