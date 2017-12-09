@@ -59,7 +59,8 @@ class App extends PureComponent {
 			...prepareChartData({
 				data: originalData,
 				canvasWidth: WIDTH,
-				canvasHeight: HEIGHT
+				canvasHeight: HEIGHT,
+				canvasOffset: OFFSET
 			})
 		});
 	};
@@ -71,7 +72,6 @@ class App extends PureComponent {
 			maxValue,
 			coordinates,
 			polyLinePoints,
-			originalDadata,
 			xLegendData,
 			loading,
 			success

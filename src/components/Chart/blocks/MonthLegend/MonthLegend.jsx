@@ -7,7 +7,7 @@ function MonthLegend(props, ctx) {
 			{
 				props.legendData.map((text, idx, arr) => {
 					let offset = props.offset;
-					let xCoordinate = idx * Math.round((props.canvasWidth / arr.length)) + offset;
+					let xCoordinate = idx * Math.round((props.canvasWidth / arr.length));
 					let yCoordinate = props.canvasHeight - offset / 2;
 					
 					return (
@@ -23,7 +23,7 @@ function MonthLegend(props, ctx) {
 				})
 			}
 		</g>
-	)
+	);
 }
 
 MonthLegend.propTypes = {
@@ -35,16 +35,3 @@ MonthLegend.propTypes = {
 };
 
 export default MonthLegend;
-
-/**
- ,
- <MonthLegend
- key='x-legend'
- data={  }
- canvasWidth={ width }
- canvasHeight={ height }
- offset={ offset }
- formatter={ formatMonth }
- className={ styles['x-legend'] }
- />
- */

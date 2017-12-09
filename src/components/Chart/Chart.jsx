@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import styles from './Chart.scss';
 import MonthLegend from './blocks/MonthLegend';
 import StatsPopup from './blocks/StatsPopup';
+import RateTriangle from './blocks/RateTriangle';
 import $noop from 'lodash/noop';
 import cls from 'classnames';
 import { formatValue, formatDate } from 'utility/format';
@@ -33,7 +34,7 @@ class Chart extends Component {
 		pointsDict: PropTypes.object,
 		maxValue: PropTypes.number,
 		minValue: PropTypes.number,
-		xLegendData: PropTypes.array
+		xAxisLegendData: PropTypes.array
 	};
 	
 	constructor(props, ctx) {
@@ -55,9 +56,13 @@ class Chart extends Component {
 	}
 	
 	drawXAxis() {
-		const { width, offset, height, xLegendData } = this.props;
+		const { width, offset, height, xAxisLegendData } = this.props;
+		if (!xAxisLegendData) {
+			return null;
+		}
+		
 		return (
-			<React.fragment>
+			<React.Fragment>
 				<line
 					key='x-axis'
 					styleName='axis-line'
@@ -66,7 +71,14 @@ class Chart extends Component {
 					y1={ height - offset }
 					y2={ height - offset }
 				/>
-			</React.fragment>
+				<MonthLegend
+					canvasHeight={ height }
+					canvasWidth={ width }
+					offset={ offset }
+					legendData={ xAxisLegendData }
+					className={ styles['x-legend'] }
+				/>
+			</React.Fragment>
 		)
 	}
 	
@@ -125,15 +137,28 @@ class Chart extends Component {
 	}
 	
 	renderStatsPopup() {
-		const currentStats = this.state.currentStats;
-		if (!currentStats) {
+		const { statsPopupIsVisible, currentStats } = this.state;
+		
+		if (!currentStats || !statsPopupIsVisible) {
 			return null;
 		}
 		
 		const { timestamp, currency, growIndex, x, y } = currentStats;
 		const { popupX, popupY } = this.getPopupCoords(x, y);
 		const { statsPopupWidth, statsPopupHeight } = this.props;
-		const { coefficient, growing } = growIndex;
+		const { coefficient } = growIndex;
+		const isGrowing = coefficient > 0;
+		
+		let arrowNode;
+		if (coefficient) {
+			arrowNode = (
+				<RateTriangle
+					isGrowing={ isGrowing }
+					x={ popupX }
+					y={ popupY }
+				/>
+			)
+		}
 		
 		return (
 			<React.Fragment>
@@ -152,41 +177,40 @@ class Chart extends Component {
 						<tspan styleName="chart-popup-date" x={ popupX + 10 } y={ popupY + 20 }>
 							{ formatDate(timestamp) }
 						</tspan>
+						
 						<tspan styleName="chart-popup-rate" x={ popupX + 10 } y={ popupY + 40 }>
 							{ formatValue(currency, 'USD', 'en') }
 						</tspan>
+						
 						{ coefficient && (
-							<tspan styleName={ cls('chart-popup-index', {
-								isGrowing: growing,
-								isFalling: coefficient < 0
-							}) } x={ popupX + 60 } y={ popupY + 40 }>
+							<tspan
+								styleName={ cls('chart-popup-index', isGrowing ? 'isGrowing' : 'isFalling') }
+								x={ popupX + 80 }
+								y={ popupY + 40 }
+							>
 								{ coefficient.toFixed(2) }
 							</tspan>
-						)}
+						) }
 					</text>
+					{ arrowNode }
 				</StatsPopup>
 			</React.Fragment>
 		)
 	}
 	
-	render() {
-		const maskColor = '#f7f7f7';
-		
+	renderChartLine() {
 		const {
-			color,
 			chartLoaded,
-			chartFetching,
+			color,
 			polyLinePoints,
 			offset,
-			width,
 			height
 		} = this.props;
 		
-		let canvasContentNodes;
 		if (chartLoaded) {
-			const { statsPopupIsVisible, currentStats } = this.state;
+			const { currentStats } = this.state;
 			
-			canvasContentNodes = (
+			return (
 				<React.Fragment>
 					<g key='chart-mask'>
 						{ currentStats && (
@@ -208,11 +232,19 @@ class Chart extends Component {
 						stroke={ color }
 						points={ polyLinePoints }
 					/>
-					
-					{ statsPopupIsVisible && this.renderStatsPopup() }
 				</React.Fragment>
-			)
+			);
 		}
+	}
+	
+	render() {
+		const maskColor = '#f7f7f7';
+		
+		const {
+			chartLoaded,
+			width,
+			height
+		} = this.props;
 		
 		return (
 			<div styleName='Chart'>
@@ -227,8 +259,9 @@ class Chart extends Component {
 						onMouseMove={ chartLoaded ? this.handleMouseMove : $noop }
 						onMouseLeave={ chartLoaded ? this.handleMouseLeave : $noop }
 					>
-						{ canvasContentNodes }
-						{ /*{ this.drawXAxis() }*/ }
+						{ this.drawXAxis() }
+						{ this.renderChartLine() }
+						{ this.renderStatsPopup() }
 					</svg>
 				</div>
 			</div>

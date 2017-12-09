@@ -9,7 +9,7 @@ import getMonthName from 'utility/getMonthName';
  * @param canvasOffset
  * @returns {{coordinates: Array, pointsDict: {}, minValue: *, maxValue: *, xLegendData: Array, polyLinePoints: string}}
  */
-export default function prepareChartData({ data, canvasWidth, canvasHeight, canvasOffset }) {
+export default function prepareChartData({ data, canvasWidth, canvasHeight }) {
 	const pointsDict = {};
 	const stats = Object.values(data);
 	const monthCountList = Object.keys(data);
@@ -23,13 +23,13 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 	const minValue = flatStatsData.reduce((acc, { currency }) => Math.min(acc, currency), maxValue);
 	
 	let daysCount = daysInMonthsList.pop();
-	const X_SECTOR_WIDTH = canvasWidth / monthCountList.length;
+	const X_SECTOR_WIDTH = canvasWidth * .95 / monthCountList.length;
 	let X_MONTH_PART_WIDTH = X_SECTOR_WIDTH / daysCount;
-	let X_OFFSET = 0;
+	let X_OFFSET = canvasWidth * .025;
 	let i = 0;
 	let j = 1;
 	
-	while (i < valuesCount) { // 180
+	while (i < valuesCount) {
 		const { currency, growIndex, timestamp } = flatStatsData[i];
 		
 		/**
@@ -53,7 +53,7 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 		
 		if (j !== 1 && j % daysCount === 0 || j === 1 && daysCount === 1) {
 			daysCount = daysInMonthsList.pop();
-			X_MONTH_PART_WIDTH = X_SECTOR_WIDTH / daysCount;
+			X_MONTH_PART_WIDTH = (X_SECTOR_WIDTH / daysCount);
 			X_OFFSET += X_SECTOR_WIDTH;
 			j = 1;
 		} else {
