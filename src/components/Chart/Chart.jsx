@@ -1,13 +1,10 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import CSSModules from 'react-css-modules';
 import PropTypes from 'prop-types';
 import styles from './Chart.scss';
 import MonthLegend from './blocks/MonthLegend';
 import StatsPopup from './blocks/StatsPopup';
-import RateTriangle from './blocks/RateTriangle';
 import $noop from 'lodash/noop';
-import cls from 'classnames';
-import { formatValue, formatDate } from 'utility/format';
 
 const LEFT_DIR = 'left';
 const RIGHT_DIR = 'right';
@@ -16,7 +13,7 @@ const RIGHT_DIR = 'right';
 	allowMultiple: true,
 	handleNotFoundStyleName: 'ignore'
 })
-class Chart extends Component {
+class Chart extends PureComponent {
 	static defaultProps = {
 		color: '#96bbd7'
 	};
@@ -66,7 +63,7 @@ class Chart extends Component {
 				<line
 					key='x-axis'
 					styleName='axis-line'
-					x1={ offset }
+					x1={ 0 }
 					x2={ width }
 					y1={ height - offset }
 					y2={ height - offset }
@@ -99,7 +96,6 @@ class Chart extends Component {
 			statsPopupIsVisible: !!statsData,
 		});
 		
-		this._prevStats = statsData;
 		this._prevX = currentX;
 	}
 	
@@ -118,17 +114,28 @@ class Chart extends Component {
 	}
 	
 	getPopupCoords(x, y) {
-		const { width, height, offset, statsPopupWidth, statsPopupHeight } = this.props;
+		/**
+		 * NOTE:
+		 * показывать попап можно в зависимости от направления движения,
+		 * чтобы был виден гравик
+		 */
+		const { width, height, statsPopupWidth, statsPopupHeight } = this.props;
+		const popupOffset = 8;
+		const offsetX2 = popupOffset * 2;
 		
-		let popupX = x + 10;
-		let popupY = y + 10;
+		let popupX = x + popupOffset;
+		let popupY = y - statsPopupHeight - popupOffset;
 		
-		if (popupX + statsPopupWidth - 10 > width - offset) {
-			popupX = popupX - statsPopupWidth - 20;
+		if (popupX + statsPopupWidth - popupOffset > width) {
+			popupX -= statsPopupWidth + offsetX2;
 		}
 		
-		if (popupY + statsPopupHeight > height - offset) {
-			popupY = popupY - statsPopupHeight - 20;
+		if (popupY + statsPopupHeight > height) {
+			popupY -= statsPopupHeight + offsetX2;
+		}
+		
+		if (popupY < 0) {
+			popupY += Math.abs(popupY) + popupOffset;
 		}
 		
 		return {
@@ -143,22 +150,9 @@ class Chart extends Component {
 			return null;
 		}
 		
-		const { timestamp, currency, growIndex, x, y } = currentStats;
+		const { x, y } = currentStats;
 		const { popupX, popupY } = this.getPopupCoords(x, y);
 		const { statsPopupWidth, statsPopupHeight } = this.props;
-		const { coefficient } = growIndex;
-		const isGrowing = coefficient > 0;
-		
-		let arrowNode;
-		if (coefficient) {
-			arrowNode = (
-				<RateTriangle
-					isGrowing={ isGrowing }
-					x={ popupX }
-					y={ popupY }
-				/>
-			)
-		}
 		
 		return (
 			<React.Fragment>
@@ -172,28 +166,9 @@ class Chart extends Component {
 					height={ statsPopupHeight }
 					x={ popupX }
 					y={ popupY }
-				>
-					<text className='chart-popup-info' fill='black' style={ { color: 'black' } }>
-						<tspan styleName="chart-popup-date" x={ popupX + 10 } y={ popupY + 20 }>
-							{ formatDate(timestamp) }
-						</tspan>
-						
-						<tspan styleName="chart-popup-rate" x={ popupX + 10 } y={ popupY + 40 }>
-							{ formatValue(currency, 'USD', 'en') }
-						</tspan>
-						
-						{ coefficient && (
-							<tspan
-								styleName={ cls('chart-popup-index', isGrowing ? 'isGrowing' : 'isFalling') }
-								x={ popupX + 80 }
-								y={ popupY + 40 }
-							>
-								{ coefficient.toFixed(2) }
-							</tspan>
-						) }
-					</text>
-					{ arrowNode }
-				</StatsPopup>
+					padding={ 10 }
+					stats={ currentStats }
+				/>
 			</React.Fragment>
 		)
 	}
@@ -225,7 +200,6 @@ class Chart extends Component {
 					</g>
 					
 					<polyline
-						// transform="translate(20 20)"
 						key='chart-data-line'
 						strokeWidth={ 2 }
 						fill='none'

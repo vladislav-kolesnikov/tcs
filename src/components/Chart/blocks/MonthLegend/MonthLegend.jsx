@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { X_AXIS_OFFSET_WIDTH, X_AXIS_OFFSET_LEFT } from 'constants-data';
 
 function MonthLegend(props, ctx) {
 	return (
@@ -7,12 +8,12 @@ function MonthLegend(props, ctx) {
 			{
 				props.legendData.map((text, idx, arr) => {
 					let offset = props.offset;
-					let xCoordinate = idx * Math.round((props.canvasWidth / arr.length));
+					const xCoordinate = idx * (props.canvasWidth * X_AXIS_OFFSET_WIDTH / arr.length) + props.canvasWidth * X_AXIS_OFFSET_LEFT;
 					let yCoordinate = props.canvasHeight - offset / 2;
 					
 					return (
 						<text
-							key={ idx }
+							key={ text }
 							x={ xCoordinate }
 							y={ yCoordinate }
 							className={ props.className }

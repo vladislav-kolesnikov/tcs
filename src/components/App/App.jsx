@@ -4,12 +4,8 @@ import CSSModules from 'react-css-modules';
 import styles from './App.scss';
 import prepareChartData from 'utility/prepareChartData';
 import stateHelper from 'utility/stateHelper';
+import { WIDTH, HEIGHT, STATS_POPUP_WIDTH, STATS_POPUP_HEIGHT, OFFSET } from 'constants-data';
 
-const OFFSET = 40;
-const WIDTH = 960;
-const HEIGHT = WIDTH / 2;
-const STATS_POPUP_WIDTH = 150;
-const STATS_POPUP_HEIGHT = 50;
 
 @CSSModules(styles, {
 	allowMultiple: true,
@@ -48,7 +44,7 @@ class App extends PureComponent {
 			() => fetch('/api/charts')
 				.then(res => res.json())
 				.then(this.onFulfilled)
-				.catch(error => console.warn('ERROR:', error))
+				.catch(error => console.error('ERROR:', error))
 		);
 	};
 	
@@ -60,7 +56,6 @@ class App extends PureComponent {
 				data: originalData,
 				canvasWidth: WIDTH,
 				canvasHeight: HEIGHT,
-				canvasOffset: OFFSET
 			})
 		});
 	};

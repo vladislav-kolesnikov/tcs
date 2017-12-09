@@ -1,0 +1,33 @@
+.StatsPopup {
+  fill: white;
+  x: 0;
+  y: 0;
+  rx: 3;
+  ry: 3;
+}
+
+.chart-popup-info {
+  tspan {
+    display: block;
+  }
+}
+
+.chart-popup-date {
+  fill: #bebebe;
+}
+
+.chart-popup-rate {
+  fill: black;
+}
+
+.chart-popup-index {
+  fill: black;
+}
+
+.isGrowing {
+  fill: forestgreen;
+}
+
+.isFalling {
+  fill: red;
+}

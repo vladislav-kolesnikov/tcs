@@ -40,29 +40,3 @@ $pointBorderColor: white;
   will-change: r;
   transition: 150ms r ease;
 }
-
-.chart-popup-info {
-  tspan {
-    display: block;
-  }
-}
-
-.chart-popup-date {
-  fill: #bebebe;
-}
-
-.chart-popup-rate {
-  fill: black;
-}
-
-.chart-popup-index {
-  fill: black;
-
-  &.isGrowing {
-    fill: forestgreen;
-  }
-
-  &.isFalling {
-    fill: red;
-  }
-}

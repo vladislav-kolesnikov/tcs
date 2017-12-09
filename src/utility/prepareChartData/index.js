@@ -1,5 +1,6 @@
 import $flatten from 'lodash/flatten';
 import getMonthName from 'utility/getMonthName';
+import { X_AXIS_OFFSET_WIDTH, X_AXIS_OFFSET_LEFT } from 'constants-data';
 
 /**
  *
@@ -23,9 +24,9 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight }) {
 	const minValue = flatStatsData.reduce((acc, { currency }) => Math.min(acc, currency), maxValue);
 	
 	let daysCount = daysInMonthsList.pop();
-	const X_SECTOR_WIDTH = canvasWidth * .95 / monthCountList.length;
+	const X_SECTOR_WIDTH = canvasWidth * X_AXIS_OFFSET_WIDTH / monthCountList.length;
 	let X_MONTH_PART_WIDTH = X_SECTOR_WIDTH / daysCount;
-	let X_OFFSET = canvasWidth * .025;
+	let X_OFFSET = canvasWidth * X_AXIS_OFFSET_LEFT;
 	let i = 0;
 	let j = 1;
 	
@@ -72,7 +73,7 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight }) {
 			pointsDict[k] = pointsDict[k - 1];
 		}
 	}
-
+	
 	return {
 		coordinates,
 		pointsDict,
