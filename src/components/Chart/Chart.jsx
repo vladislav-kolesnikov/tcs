@@ -228,7 +228,7 @@ class Chart extends PureComponent {
 								x1={ currentStats.x }
 								y1={ currentStats.y }
 								x2={ currentStats.x }
-								y2={ height - offset }
+								y2={ height - height * Y_AXIS_OFFSET_TOP }
 							/>
 						) }
 					</g>
