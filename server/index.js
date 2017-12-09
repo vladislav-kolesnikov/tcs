@@ -16,6 +16,7 @@ server.get('/api/charts', async (req, res, next) => {
 		res.send(stats);
 		return next();
 	} catch (e) {
+		console.log(e);
 		return next(e);
 	}
 });

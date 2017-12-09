@@ -8,7 +8,8 @@ import stateHelper from 'utility/stateHelper';
 const OFFSET = 40;
 const WIDTH = 960;
 const HEIGHT = WIDTH / 2;
-const STATS_POPUP_SIZE = 100;
+const STATS_POPUP_WIDTH = 150;
+const STATS_POPUP_HEIGHT = 50;
 
 @CSSModules(styles, {
 	allowMultiple: true,
@@ -88,7 +89,8 @@ class App extends PureComponent {
 						width={ WIDTH }
 						height={ HEIGHT }
 						offset={ OFFSET }
-						statsPopupSize={ STATS_POPUP_SIZE }
+						statsPopupWidth={ STATS_POPUP_WIDTH }
+						statsPopupHeight={ STATS_POPUP_HEIGHT }
 						
 						xAxisLegendData={xLegendData}
 						polyLinePoints={ polyLinePoints }

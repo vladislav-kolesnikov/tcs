@@ -3,16 +3,10 @@ import CSSModules from 'react-css-modules';
 import PropTypes from 'prop-types';
 import styles from './Chart.scss';
 import MonthLegend from './blocks/MonthLegend';
-import $memo from 'lodash/memoize';
+import StatsPopup from './blocks/StatsPopup';
 import $noop from 'lodash/noop';
-
-function formatDate(date) {
-	if (typeof date === 'number') {
-		date = new Date(date);
-	}
-	
-	return new Intl.DateTimeFormat('ru').format(date)
-}
+import cls from 'classnames';
+import { formatValue, formatDate } from 'utility/format';
 
 const LEFT_DIR = 'left';
 const RIGHT_DIR = 'right';
@@ -33,7 +27,8 @@ class Chart extends Component {
 		width: PropTypes.number,
 		height: PropTypes.number,
 		offset: PropTypes.number,
-		statsPopupSize: PropTypes.number,
+		statsPopupWidth: PropTypes.number,
+		statsPopupHeight: PropTypes.number,
 		polyLinePoints: PropTypes.string,
 		pointsDict: PropTypes.object,
 		maxValue: PropTypes.number,
@@ -47,9 +42,8 @@ class Chart extends Component {
 		this.state = {
 			statsPopupIsVisible: false,
 			currentPosition: {},
-			currentStats: {
-				growIndex: {}
-			}
+			currentStats: null,
+			moveDirection: ''
 		};
 		
 		this.handleMouseLeave = this.handleMouseLeave.bind(this);
@@ -72,7 +66,6 @@ class Chart extends Component {
 					y1={ height - offset }
 					y2={ height - offset }
 				/>
-			
 			</React.fragment>
 		)
 	}
@@ -89,7 +82,7 @@ class Chart extends Component {
 		
 		this.setState({
 			currentPosition: cursorCoordinates,
-			moveDirection: moveDirection,
+			moveDirection,
 			currentStats: statsData,
 			statsPopupIsVisible: !!statsData,
 		});
@@ -112,61 +105,67 @@ class Chart extends Component {
 		return pt.matrixTransform(this.svgNode.getScreenCTM().inverse());
 	}
 	
+	getPopupCoords(x, y) {
+		const { width, height, offset, statsPopupWidth, statsPopupHeight } = this.props;
+		
+		let popupX = x + 10;
+		let popupY = y + 10;
+		
+		if (popupX + statsPopupWidth - 10 > width - offset) {
+			popupX = popupX - statsPopupWidth - 20;
+		}
+		
+		if (popupY + statsPopupHeight > height - offset) {
+			popupY = popupY - statsPopupHeight - 20;
+		}
+		
+		return {
+			popupX, popupY
+		}
+	}
+	
 	renderStatsPopup() {
 		const currentStats = this.state.currentStats;
-		if (!Object.keys(currentStats)) {
+		if (!currentStats) {
 			return null;
 		}
 		
-		let {
-			x = 0,
-			y = 0,
-			timestamp,
-			growIndex,
-			currency
-		} = currentStats;
-		
-		const { width, height, offset, statsPopupSize } = this.props;
-		
-		const ratesPointNode = (
-			<circle
-				styleName={ 'rates-point' }
-				cx={ x }
-				cy={ y }
-			/>
-		);
-		
-		y = y + 10;
-		x = x + 10;
-		
-		if (x + statsPopupSize - 10 > width - offset) {
-			x = x - statsPopupSize - 20;
-		}
-		
-		if (y + statsPopupSize > height - offset) {
-			y = y - statsPopupSize - 20;
-		}
+		const { timestamp, currency, growIndex, x, y } = currentStats;
+		const { popupX, popupY } = this.getPopupCoords(x, y);
+		const { statsPopupWidth, statsPopupHeight } = this.props;
+		const { coefficient, growing } = growIndex;
 		
 		return (
-			<g key='chart-data-popup'>
-				<rect
-					fill='white'
-					x={ x }
-					y={ y }
-					rx={ 3 }
-					ry={ 3 }
-					width={ statsPopupSize }
-					height={ statsPopupSize }
-					filter='url(#shadow)'
+			<React.Fragment>
+				<circle
+					styleName={ 'rates-point' }
+					cx={ x }
+					cy={ y }
+				/>
+				<StatsPopup
+					width={ statsPopupWidth }
+					height={ statsPopupHeight }
+					x={ popupX }
+					y={ popupY }
 				>
-					<text fill='black' style={{ color: 'black' }}>
-						{ currency }
-						{ formatDate(timestamp) }
-						{ growIndex.coefficient }
-						</text>
-				</rect>
-				{ ratesPointNode }
-			</g>
+					<text className='chart-popup-info' fill='black' style={ { color: 'black' } }>
+						<tspan styleName="chart-popup-date" x={ popupX + 10 } y={ popupY + 20 }>
+							{ formatDate(timestamp) }
+						</tspan>
+						<tspan styleName="chart-popup-rate" x={ popupX + 10 } y={ popupY + 40 }>
+							{ formatValue(currency, 'USD', 'en') }
+						</tspan>
+						{ coefficient && (
+							<tspan styleName={ cls('chart-popup-index', {
+								isGrowing: growing,
+								isFalling: coefficient < 0
+							}) } x={ popupX + 60 } y={ popupY + 40 }>
+								{ coefficient.toFixed(2) }
+							</tspan>
+						)}
+					</text>
+				</StatsPopup>
+			</React.Fragment>
 		)
 	}
 	
@@ -177,7 +176,6 @@ class Chart extends Component {
 			color,
 			chartLoaded,
 			chartFetching,
-			coordinates,
 			polyLinePoints,
 			offset,
 			width,
@@ -186,27 +184,20 @@ class Chart extends Component {
 		
 		let canvasContentNodes;
 		if (chartLoaded) {
-			const { currentPosition, statsPopupIsVisible } = this.state;
-			const xCoord = currentPosition.x > offset ? currentPosition.x : offset;
-			const { y: firstY } = coordinates[0];
-			const { y: lastY } = coordinates[coordinates.length - 1];
+			const { statsPopupIsVisible, currentStats } = this.state;
 			
 			canvasContentNodes = (
 				<React.Fragment>
 					<g key='chart-mask'>
-						<line
-							styleName='chart-line'
-							x1={ xCoord }
-							y1={ 0 }
-							x2={ xCoord }
-							y2={ height - offset }
-						/>
-						
-						<polygon
-							// transform="translate(20 20)"
-							fill={ maskColor }
-							points={ `${offset - 1} 0, ${offset - 1} ${firstY} ${polyLinePoints}, ${width + 1} ${lastY}, ${width + 1} 0` }
-						/>
+						{ currentStats && (
+							<line
+								styleName='chart-line'
+								x1={ currentStats.x }
+								y1={ currentStats.y }
+								x2={ currentStats.x }
+								y2={ height - offset }
+							/>
+						) }
 					</g>
 					
 					<polyline
@@ -236,15 +227,6 @@ class Chart extends Component {
 						onMouseMove={ chartLoaded ? this.handleMouseMove : $noop }
 						onMouseLeave={ chartLoaded ? this.handleMouseLeave : $noop }
 					>
-						<defs>
-							<filter id="shadow">
-								<feDropShadow
-									dx='0'
-									dy='0'
-									stdDeviation='1'
-								/>
-							</filter>
-						</defs>
 						{ canvasContentNodes }
 						{ /*{ this.drawXAxis() }*/ }
 					</svg>

@@ -4,8 +4,7 @@ const path = require('path');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 // const writeFile = promisify(fs.writeFile);
-const $sortBy = require('lodash/sortBy');
-const $map = require('lodash/map');
+const _ = require('lodash');
 
 function calculateCoefficient(prevValue, currentValue) {
 	if (!prevValue) {
@@ -26,7 +25,6 @@ function calculateCoefficient(prevValue, currentValue) {
 	};
 }
 
-let prevValue = 0;
 
 /**
  *
@@ -34,19 +32,27 @@ let prevValue = 0;
  * @returns {Object} statsData
  */
 function prepareStatsData(result) {
+	let prevValue = 0;
 	const statsData = {};
 	
 	Object.values(result).forEach((stats, idx) => {
-		const preparedStats = $map(stats, ({ currency, dayIdx }) => {
-			const stats = {
-				growIndex: calculateCoefficient(prevValue, currency),
+		statsData[idx] = _
+			.chain(stats)
+			.map(({ currency, dayIdx }) => ({
 				timestamp: new Date(2016, idx, dayIdx).getTime(),
 				currency
-			};
-			prevValue = currency;
-			return stats;
-		});
-		statsData[idx] = $sortBy(preparedStats, ['stat', 'timestamp'])
+			}))
+			.sortBy('timestamp')
+			.map(({ currency, ...restStats }) => {
+				const stat = {
+					...restStats,
+					growIndex: calculateCoefficient(prevValue, currency),
+					currency
+				};
+				
+				prevValue = currency;
+				return stat;
+			});
 	});
 	
 	return statsData;
@@ -67,7 +73,7 @@ async function saveStats() {
 	});
 	const result = dummyJson.parse(template);
 	const parsedResult = JSON.parse(result);
-	await sleep(2);
+	// await sleep(2);
 	return prepareStatsData(parsedResult);
 }
 

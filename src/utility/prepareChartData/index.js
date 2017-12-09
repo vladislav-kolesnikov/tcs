@@ -47,9 +47,8 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 			y
 		};
 		
-		const coords = { x, y };
-		coordinates[i] = coords;
-		polyLinePoints[i] = `${x} ${y}`;
+		coordinates[i] = { x, y };
+		polyLinePoints[i] = `${x}, ${y}`;
 		
 		
 		if (j !== 1 && j % daysCount === 0 || j === 1 && daysCount === 1) {
@@ -66,16 +65,20 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight, canv
 	
 	for (let k = 0; k < canvasWidth; k++) {
 		if (!pointsDict[k]) {
+			if (!pointsDict[k - 1]) {
+				continue;
+			}
+			
 			pointsDict[k] = pointsDict[k - 1];
 		}
 	}
-	
+
 	return {
 		coordinates,
 		pointsDict,
 		minValue,
 		maxValue,
 		xLegendData: monthCountList.map(getMonthName),
-		polyLinePoints: polyLinePoints.join(', ')
+		polyLinePoints: polyLinePoints.join(' ')
 	}
 }
