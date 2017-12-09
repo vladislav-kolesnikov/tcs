@@ -80,7 +80,6 @@ class Chart extends PureComponent {
 		const lineNodes = [];
 		
 		let maxY = Math.round(maxValue);
-		const coords = [];
 		const deltaY = maxY / 10;
 		const leftX = width * X_AXIS_OFFSET_LEFT;
 		const rightX = width - (width * X_AXIS_OFFSET_LEFT);
