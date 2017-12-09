@@ -1,6 +1,6 @@
 import $flatten from 'lodash/flatten';
 import getMonthName from 'utility/getMonthName';
-import { X_AXIS_OFFSET_WIDTH, X_AXIS_OFFSET_LEFT } from 'constants-data';
+import { X_AXIS_OFFSET_WIDTH, X_AXIS_OFFSET_LEFT, Y_AXIS_OFFSET_HEIGHT, Y_AXIS_OFFSET_TOP } from 'constants-data';
 
 /**
  *
@@ -38,7 +38,7 @@ export default function prepareChartData({ data, canvasWidth, canvasHeight }) {
 		 * @type {number}
 		 */
 		const x = Math.floor(j * X_MONTH_PART_WIDTH + X_OFFSET);
-		const y = canvasHeight - (currency * canvasHeight * .8 / maxValue) - canvasHeight * .1;
+		const y = canvasHeight - (currency * canvasHeight * Y_AXIS_OFFSET_HEIGHT / maxValue) - canvasHeight * Y_AXIS_OFFSET_TOP;
 		
 		pointsDict[x] = {
 			currency,

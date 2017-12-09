@@ -1,5 +1,5 @@
 $pointFillColor: #8eb4d0;
-$pointRadius: 5;
+$pointRadius: 4;
 $pointBorderColor: white;
 
 .Chart {
@@ -13,6 +13,7 @@ $pointBorderColor: white;
 
 .canvas {
   cursor: pointer;
+  background: #f7f7f7;
 }
 
 .x-legend {

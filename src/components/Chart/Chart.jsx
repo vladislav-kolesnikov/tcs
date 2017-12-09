@@ -5,9 +5,10 @@ import styles from './Chart.scss';
 import MonthLegend from './blocks/MonthLegend';
 import StatsPopup from './blocks/StatsPopup';
 import $noop from 'lodash/noop';
+import { X_AXIS_OFFSET_LEFT, Y_AXIS_OFFSET_TOP, Y_AXIS_OFFSET_HEIGHT } from 'constants-data';
 
-const LEFT_DIR = 'left';
-const RIGHT_DIR = 'right';
+const LEFT_DIR = -1;
+const RIGHT_DIR = 1;
 
 @CSSModules(styles, {
 	allowMultiple: true,
@@ -52,31 +53,63 @@ class Chart extends PureComponent {
 		this.pt = this.svgNode.createSVGPoint();
 	}
 	
-	drawXAxis() {
+	renderXAxis() {
 		const { width, offset, height, xAxisLegendData } = this.props;
 		if (!xAxisLegendData) {
 			return null;
 		}
 		
 		return (
-			<React.Fragment>
-				<line
-					key='x-axis'
-					styleName='axis-line'
-					x1={ 0 }
-					x2={ width }
-					y1={ height - offset }
-					y2={ height - offset }
-				/>
-				<MonthLegend
-					canvasHeight={ height }
-					canvasWidth={ width }
-					offset={ offset }
-					legendData={ xAxisLegendData }
-					className={ styles['x-legend'] }
-				/>
-			</React.Fragment>
-		)
+			<MonthLegend
+				canvasWidth={ width }
+				canvasHeight={ height }
+				offset={ offset }
+				legendData={ xAxisLegendData }
+				className={ styles['x-legend'] }
+			/>
+		);
+	}
+	
+	renderYAxis() {
+		const { height, width, maxValue } = this.props;
+		
+		if (!maxValue) {
+			return null;
+		}
+		
+		const lineNodes = [];
+		
+		let maxY = Math.round(maxValue);
+		const coords = [];
+		const deltaY = maxY / 10;
+		const leftX = width * X_AXIS_OFFSET_LEFT;
+		const rightX = width - (width * X_AXIS_OFFSET_LEFT);
+		
+		for (let i = 0; i <= maxY + deltaY; i += (maxY / deltaY)) {
+			const lineY = height - (i * height * Y_AXIS_OFFSET_HEIGHT / maxY) - height * Y_AXIS_OFFSET_TOP;
+			
+			lineNodes[i] = (
+				<g key={ i }>
+					<line
+						x1={ leftX }
+						x2={ rightX }
+						y1={ lineY }
+						y2={ lineY }
+						stroke={ '#afafaf' }
+						strokeWidth={ 1 }
+					/>
+					<text
+						x={ leftX - 20 }
+						y={ lineY + 4 }
+						fill={ '#909090' }
+					>
+						{ i }
+					</text>
+				</g>
+			);
+		}
+		
+		return lineNodes;
 	}
 	
 	_prevX = null;
@@ -117,7 +150,8 @@ class Chart extends PureComponent {
 		/**
 		 * NOTE:
 		 * показывать попап можно в зависимости от направления движения,
-		 * чтобы был виден гравик
+		 * чтобы был виден график
+		 * let popupX = this.state.moveDirection > 0 ? x - statsPopupWidth - popupOffset : x + popupOffset;
 		 */
 		const { width, height, statsPopupWidth, statsPopupHeight } = this.props;
 		const popupOffset = 8;
@@ -125,8 +159,7 @@ class Chart extends PureComponent {
 		
 		let popupX = x + popupOffset;
 		let popupY = y - statsPopupHeight - popupOffset;
-		
-		if (popupX + statsPopupWidth - popupOffset > width) {
+		if (popupX + statsPopupWidth > width) {
 			popupX -= statsPopupWidth + offsetX2;
 		}
 		
@@ -139,7 +172,8 @@ class Chart extends PureComponent {
 		}
 		
 		return {
-			popupX, popupY
+			popupX,
+			popupY
 		}
 	}
 	
@@ -201,7 +235,7 @@ class Chart extends PureComponent {
 					
 					<polyline
 						key='chart-data-line'
-						strokeWidth={ 2 }
+						strokeWidth={ 1 }
 						fill='none'
 						stroke={ color }
 						points={ polyLinePoints }
@@ -212,12 +246,10 @@ class Chart extends PureComponent {
 	}
 	
 	render() {
-		const maskColor = '#f7f7f7';
-		
 		const {
 			chartLoaded,
 			width,
-			height
+			height,
 		} = this.props;
 		
 		return (
@@ -229,11 +261,11 @@ class Chart extends PureComponent {
 						viewBox={ `0 0 ${width} ${height}` }
 						width={ width }
 						height={ height }
-						style={ { backgroundColor: maskColor } }
 						onMouseMove={ chartLoaded ? this.handleMouseMove : $noop }
 						onMouseLeave={ chartLoaded ? this.handleMouseLeave : $noop }
 					>
-						{ this.drawXAxis() }
+						{ this.renderYAxis() }
+						{ this.renderXAxis() }
 						{ this.renderChartLine() }
 						{ this.renderStatsPopup() }
 					</svg>

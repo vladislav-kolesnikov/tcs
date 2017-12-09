@@ -39,7 +39,7 @@ class App extends PureComponent {
 	fetchChartData = () => {
 		this.setState(_ => ({
 				...stateHelper.loading,
-			...App.initialState,
+				...App.initialState,
 			}),
 			() => fetch('/api/charts')
 				.then(res => res.json())
@@ -87,7 +87,7 @@ class App extends PureComponent {
 						statsPopupWidth={ STATS_POPUP_WIDTH }
 						statsPopupHeight={ STATS_POPUP_HEIGHT }
 						
-						xAxisLegendData={xLegendData}
+						xAxisLegendData={ xLegendData }
 						polyLinePoints={ polyLinePoints }
 						pointsDict={ pointsDict }
 						coordinates={ coordinates }

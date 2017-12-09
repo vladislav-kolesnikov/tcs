@@ -14,7 +14,7 @@ function MonthLegend(props, ctx) {
 					return (
 						<text
 							key={ text }
-							x={ xCoordinate }
+							x={ xCoordinate + props.offset / 2 }
 							y={ yCoordinate }
 							className={ props.className }
 						>
